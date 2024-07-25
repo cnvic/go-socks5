@@ -55,6 +55,7 @@ type Config struct {
 type Server struct {
 	config      *Config
 	authMethods map[uint8]Authenticator
+	listener    net.Listener
 }
 
 // New creates a new Server and potentially returns an error
@@ -107,6 +108,7 @@ func (s *Server) ListenAndServe(network, addr string) error {
 
 // Serve is used to serve connections from a listener
 func (s *Server) Serve(l net.Listener) error {
+	s.listener = l
 	for {
 		conn, err := l.Accept()
 		if err != nil {
@@ -166,4 +168,15 @@ func (s *Server) ServeConn(conn net.Conn) error {
 	}
 
 	return nil
+}
+
+// CloseServe is used to close a listener
+func (s *Server) CloseServe() error {
+	if s.listener != nil {
+		err := s.listener.Close()
+		s.listener = nil
+		return err
+	} else {
+		return fmt.Errorf("No listener created yet")
+	}
 }
